@@ -30,7 +30,7 @@ public class StudentController {
                 .stream()
                 .filter(student -> id.equals(student.getId()))
                 .findAny()
-                .orElseThrow();
+                .orElseThrow(() -> new IllegalStateException("Student Not Found"));
     }
     
 }
