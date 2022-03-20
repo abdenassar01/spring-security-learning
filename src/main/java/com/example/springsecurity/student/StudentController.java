@@ -19,7 +19,7 @@ public class StudentController {
             new Student(4, "Youssef")
     );
     
-    @GetMapping("/all")
+    @GetMapping("/")
     public List<Student> getAll(){
         return students;
     }

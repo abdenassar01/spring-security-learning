@@ -16,4 +16,5 @@ public enum UserPermissions {
     UserPermissions(String permission) {
         this.permission = permission;
     }
+    
 }
