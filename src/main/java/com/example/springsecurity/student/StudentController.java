@@ -1,5 +1,6 @@
 package com.example.springsecurity.student;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,11 +21,13 @@ public class StudentController {
     );
     
     @GetMapping("/")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_STUDENT')")
     public List<Student> getAll(){
         return students;
     }
     
     @GetMapping(path = "/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_STUDENT')")
     public Student getStudent(@PathVariable("id") Integer id){
         return students
                 .stream()
