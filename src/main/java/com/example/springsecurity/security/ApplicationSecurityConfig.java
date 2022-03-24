@@ -1,21 +1,18 @@
 package com.example.springsecurity.security;
 
+import com.example.springsecurity.auth.ApplicationUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
-import static com.example.springsecurity.security.UserRoles.*;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 @EnableWebSecurity
@@ -23,19 +20,20 @@ import static com.example.springsecurity.security.UserRoles.*;
 public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
     
     private final PasswordEncoder passwordEncoder;
+    private final ApplicationUserDetailsService userDetailsService;
 
     @Autowired
-    public ApplicationSecurityConfig(PasswordEncoder passwordEncoder) {
+    public ApplicationSecurityConfig(PasswordEncoder passwordEncoder, ApplicationUserDetailsService userDetailsService) {
         this.passwordEncoder = passwordEncoder;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        //  I was messing the csrf working -> should disable it 
         http
                 .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/", "index", "/courses")
+                .antMatchers("/", "index")
                 .permitAll()
                 .anyRequest()
                 .authenticated()
@@ -45,33 +43,29 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                     .permitAll()
                     .defaultSuccessUrl("/courses", true)
                     .and()
-                    .rememberMe();
+                    .rememberMe()
+                    .tokenValiditySeconds((int) TimeUnit.DAYS.toSeconds(30))
+                .and().logout()
+                    .logoutUrl("/logout") 
+                    .clearAuthentication(true)
+                    .invalidateHttpSession(true)
+                    .deleteCookies("JSESSIONID", "remember-me")
+                    .logoutSuccessUrl("/login");
     }
 
     @Override
-    @Bean
-    protected UserDetailsService userDetailsService() {
-        UserDetails admin =  User
-                .builder()
-                .username("abdenassar")
-                .password(passwordEncoder.encode("supersecretpassword"))
-                .authorities(ADMIN.getGrantedAuthorities())
-                .build();
-        UserDetails manager =  User
-                .builder()
-                .username("manager")
-                .password(passwordEncoder.encode("meduimpassword"))
-                .authorities(MANAGER.getGrantedAuthorities())
-                .build();
-
-        UserDetails student =  User
-                .builder()
-                .username("maria")
-                .password(passwordEncoder.encode("weakpassword"))
-                .authorities(STUDENT.getGrantedAuthorities())
-                .build();
-        
-        
-        return new InMemoryUserDetailsManager(admin, manager,  student);
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(daoAuthenticationProvider());
     }
+
+    @Bean
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setPasswordEncoder(passwordEncoder);
+        provider.setUserDetailsService(userDetailsService);
+        return provider;
+    }
+
+
+    // TODO: see what wrong with this code tomorrow morning
 }

@@ -6,8 +6,26 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Success</title>
+    <style>
+        .btn-logout{
+            padding: 12px 42px;
+            background-color: #d32b6c;
+            border: none;
+            border-radius: 50px ;
+            transition: all 0.3s ease-in;
+            color: white;
+        }
+
+        .btn-logout:hover{
+            background-color: #e363f5;
+            transform: scale(1.1);
+        }
+    </style>
 </head>
 <body>
     <h1>You Successfully Logged In</h1>
+    <form class="logout" action="/logout" method="GET">
+        <input type="submit" value="logout" class="btn-logout">
+    </form>
 </body>
 </html>
